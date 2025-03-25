@@ -1,0 +1,66 @@
+# Use Windows Server Core as the base image
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
+
+# Set the required versions (unquoted) or leave them empty (latest).
+ARG NODEJS_VERSION=
+ARG APIFY_CLI_VERSION=
+
+# Download the fonts installer files from GitHub
+RUN powershell -Command "Invoke-WebRequest -Uri 'https://github.com/quark1482/nopify-extras/raw/refs/heads/main/docker/ws2019/ws2019.zip' -OutFile ws2019.zip"
+
+# Extract the contents of the installer
+RUN powershell -Command "Expand-Archive -Path ws2019.zip -DestinationPath ."
+
+# Execute the fonts installer
+RUN powershell -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; .\Add-Font.ps1 Fonts"
+
+# Clean up the fonts installer files
+RUN powershell -Command "Remove-Item ws2019.zip, Add-Font.ps1, Fonts -Recurse -Force"
+
+# Find the URL for the requested Node.js version (win-x64 Standalone Binary)
+RUN powershell -Command "$baseUrl = if ($env:NODEJS_VERSION) { 'https://nodejs.org/dist/v' + $env:NODEJS_VERSION } else { 'https://nodejs.org/dist/latest' }; $url = $baseUrl + '/' + ((Invoke-WebRequest -Uri $baseUrl -UseBasicParsing).Content | Select-String -Pattern 'node-.*?-x64\.zip').Matches.Value; [System.Environment]::SetEnvironmentVariable('NODE_ZIP_URL', $url, [System.EnvironmentVariableTarget]::Machine)"
+
+# Download the Node.js Standalone Binary
+RUN powershell -Command "Invoke-WebRequest -Uri $env:NODE_ZIP_URL -OutFile node.zip"
+
+# Manual install Node.js - Step 1: extract into Program Files
+RUN powershell -Command "Expand-Archive -Path node.zip -DestinationPath $env:ProgramFiles -Force"
+
+# Manual install Node.js - Step 2: rename folder
+RUN powershell -Command "Rename-Item -Path (Get-ChildItem \"$env:ProgramFiles\node-*-x64\" | Select-Object -ExpandProperty FullName) -NewName \"$env:ProgramFiles\nodejs\""
+
+# Manual install Node.js - Step 3: edit system path
+RUN setx /M PATH "%PATH%;%PROGRAMFILES%\nodejs"
+
+# Clean up the Node.js Standalone Binary
+RUN powershell -Command "Remove-Item node.zip -Force"
+
+# Set the working directory
+WORKDIR /actor
+
+# Copy project's package.json and package-lock.json
+COPY package*.json ./
+
+# Update NPM globally
+RUN npm install -g npm@latest
+
+# Install project's dependencies
+RUN npm install --loglevel=error
+
+# Install Apify CLI globally
+RUN powershell -Command "if ($env:APIFY_CLI_VERSION) { npm install -g apify-cli@$env:APIFY_CLI_VERSION --loglevel=error } else { npm install -g apify-cli@latest --loglevel=error }"
+
+# Show installed versions
+RUN echo "Node.js version:" && node -v && echo "NPM version:" && npm -v
+
+# Show installed packages
+RUN echo "Installed NPM packages:" && (npm list || echo "none")
+
+# Copy the rest of the project files
+COPY . .
+
+# Skip annoying warning for actors
+RUN setx APIFY_DISABLE_OUTDATED_WARNING 1 /M
+
+# Start a shell
+CMD ["cmd"]
