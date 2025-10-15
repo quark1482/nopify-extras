@@ -4,6 +4,7 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2019
 # Set the required versions (unquoted) or leave them empty (latest).
 ARG NODEJS_VERSION=
 ARG APIFY_CLI_VERSION=
+ARG INPUT_SCHEMA_VERSION=
 
 # Download the fonts installer files from GitHub
 RUN powershell -Command "Invoke-WebRequest -Uri 'https://github.com/quark1482/nopify-extras/raw/refs/heads/main/docker/ws2019/ws2019.zip' -OutFile ws2019.zip"
@@ -49,6 +50,9 @@ RUN npm install --loglevel=error
 
 # Install Apify CLI globally
 RUN powershell -Command "if ($env:APIFY_CLI_VERSION) { npm install -g apify-cli@$env:APIFY_CLI_VERSION --loglevel=error } else { npm install -g apify-cli@latest --loglevel=error }"
+
+# Downgrade Apify Input Schema, if required
+RUN powershell -Command "if ($env:INPUT_SCHEMA_VERSION) { Push-Location (Join-Path (npm root -g) 'apify-cli'); npm install @apify/input_schema@$env:INPUT_SCHEMA_VERSION --loglevel=error; Pop-Location }"
 
 # Show installed versions
 RUN echo "Node.js version:" && node -v && echo "NPM version:" && npm -v

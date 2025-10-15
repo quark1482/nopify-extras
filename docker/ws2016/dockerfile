@@ -4,6 +4,7 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2016
 # Set the required versions (unquoted) or leave them empty (latest).
 ARG NODEJS_VERSION=23.6.0
 ARG APIFY_CLI_VERSION=
+ARG APIFY_INPUT_SCHEMA_VERSION=
 
 # Find the URL for the requested Node.js version (win-x64 Standalone Binary)
 RUN powershell -Command "$baseUrl = if ($env:NODEJS_VERSION) { 'https://nodejs.org/dist/v' + $env:NODEJS_VERSION } else { 'https://nodejs.org/dist/latest' }; $url = $baseUrl + '/' + ((Invoke-WebRequest -Uri $baseUrl -UseBasicParsing).Content | Select-String -Pattern 'node-.*?-x64\.zip').Matches.Value; [System.Environment]::SetEnvironmentVariable('NODE_ZIP_URL', $url, [System.EnvironmentVariableTarget]::Machine)"
@@ -37,6 +38,9 @@ RUN npm install --loglevel=error
 
 # Install Apify CLI globally
 RUN powershell -Command "if ($env:APIFY_CLI_VERSION) { npm install -g apify-cli@$env:APIFY_CLI_VERSION --loglevel=error } else { npm install -g apify-cli@latest --loglevel=error }"
+
+# Downgrades Apify Input Schema, if required
+# RUN powershell -Command "if ($env:APIFY_INPUT_SCHEMA_VERSION) { npm install -g @apify/input_schema@$env:APIFY_INPUT_SCHEMA_VERSION --loglevel=error }"
 
 # Show installed versions
 RUN echo "Node.js version:" && node -v && echo "NPM version:" && npm -v
