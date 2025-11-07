@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 10px;
+      }
+      textarea {
+        font-family: monospace;
+        resize: vertical;
+      }
+      .inline-clear {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .form-group {
+        margin-bottom: 25px;
+      }
+      .label {
+        font-weight: bold;
+        margin-bottom: 2px;
+      }
+      .description {
+        font-size: 0.9em;
+        font-style: italic;
+        margin-bottom: 5px;
+        color: #444;
+      }
+      .row-group {
+        display: flex;
+        align-items: stretch;
+        gap: 30px;
+        margin-bottom: 25px;
+      }
+      .column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      #proxyDetails {
+        width: calc(100% - 20px);
+        box-sizing: border-box;
+      }
+      #waitMessage {
+        color: #888;
+        display: none;
+        margin-top: 10px;
+      }
+    </style>
+    <script>
+      function clearField(id) {
+        document.getElementById(id).value = '';
+      }
+
+      function validateAndGenerate() {
+        const generateBtn      = document.getElementById('generateBtn');
+        const cancelBtn        = document.getElementById('cancelBtn');
+        const waitMsg          = document.getElementById('waitMessage');
+        const creationMode     = document.querySelector('input[name="creationMode"]:checked').value;
+        const processAccounts  = cleanTextArea('processAccounts');
+        const ignoreAccounts   = cleanTextArea('ignoreAccounts');
+        const ignoreChatters   = cleanTextArea('ignoreChatters', false);
+        const namesLeadingText = document.getElementById('leadingText').value.trim();
+        const proxyDetailsRaw  = document.getElementById('proxyDetails').value.trim();
+        const onlyVon          = document.getElementById('onlyVon').value;
+        const startNow         = document.getElementById('startNow').checked;
+        const restartValue     = document.querySelector('input[name="restartPolicy"]:checked').value;
+        const restartPolicy    = restartValue === "Never" ? "never" :
+                                 restartValue === "On failure" ? "on-failure" : "always";
+        const splitCount       = parseInt(document.getElementById('splitCount').value) || 0;
+        const ignoreColored    = document.getElementById('ignoreColored').checked;
+        const rxProxy          = /https?:\/\/[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,256}\b:[0-9]+/i;
+        generateBtn.disabled   = true;
+        cancelBtn.disabled     = true;
+        waitMsg.style.display  = 'inline';
+        let proxyDetails;
+        try {
+          proxyDetails = JSON.parse(proxyDetailsRaw);
+          if (!Array.isArray(proxyDetails)) {
+            throw "Not an array";
+          }
+          proxyDetails.forEach(p => {
+            if (typeof p.proxy !== 'string' || !p.proxy.match(rxProxy)) {
+              throw "Invalid proxy";
+            }
+            if (!Array.isArray(p.accounts)) {
+              throw "Invalid accounts";
+            }
+            for (const a of p.accounts) {
+              if (typeof a !== 'string') {
+                throw "Invalid account type";
+              }
+            }
+          });
+        }
+        catch {
+          // Try to transform plain text into expected JSON
+          proxyDetails = [];
+          const lines = proxyDetailsRaw.split('\n').map(l => l.trim()).filter(Boolean);
+          let currentProxy = null;
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const proxyMatch = line.match(rxProxy);
+            if (proxyMatch) {
+              if (currentProxy !== null) { // Proxy without accounts
+                proxyDetails.push({ proxy: currentProxy, accounts: [] });
+              }
+              currentProxy = proxyMatch[0]; // Start a new proxy context
+            }
+            else if (currentProxy !== null) { // Proxy with accounts
+              const accounts = line.split(',').map(a => a.trim().toLowerCase().split(' ')[0]).filter(Boolean);
+              proxyDetails.push({ proxy: currentProxy, accounts });
+              currentProxy = null; // Reset context
+            }
+          }
+          if (currentProxy !== null) { // Last proxy without accounts
+            proxyDetails.push({ proxy: currentProxy, accounts: [] });
+          }
+        }
+        document.getElementById('proxyDetails').value = JSON.stringify(proxyDetails, null, 4);
+        google.script.run.createJSONAccountsSetup({
+          creationMode,
+          processAccounts,
+          ignoreAccounts,
+          ignoreChatters,
+          namesLeadingText,
+          proxyDetails: JSON.stringify(proxyDetails),
+          onlyVon,
+          startNow,
+          restartPolicy,
+          splitCount,
+          ignoreColored
+        });
+      }
+
+      function cleanTextArea(id, onlyFirstComponent = true) {
+        const raw   = document.getElementById(id).value.trim().toLowerCase().split('\n');
+        const clean = raw.map(a => (onlyFirstComponent ? a.split(' ')[0] : a).trim()).filter(Boolean);
+        return [...new Set(clean)].sort();
+      }
+
+      function cancelDialog() {
+        google.script.host.close();
+      }
+
+      function enableControls(enable = true) {
+        const controls = document.querySelectorAll('input, textarea, select, button');
+        controls.forEach(ctrl => {
+          if (ctrl.id !== 'cancelBtn') {
+            ctrl.disabled = !enable;
+          }
+        });
+      }
+
+      function loadInitialData() {
+        enableControls(false);
+        google.script.run.withSuccessHandler(data => {
+          document.getElementById('processAccounts').value = data.selectedAccounts.join('\n');
+          document.getElementById('ignoreChatters').value  = data.ignoredChatters.join('\n');
+          document.getElementById('leadingText').value  = data.namesLeadingText;
+          const select = document.getElementById('onlyVon');
+          data.vonOptions.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value       = v;
+            opt.textContent = v;
+            select.appendChild(opt);
+          });
+          if (data.vonOptions.length) {
+            select.value = data.vonOptions[0];
+          }
+          enableControls();
+          updateControlStates();
+        }).getCreateJSONDialogInitialData();
+      }
+
+      function updateControlStates() {
+        const mode = document.querySelector('input[name="creationMode"]:checked').value;
+        const onlyVon         = document.getElementById('onlyVon');
+        const startNow        = document.getElementById('startNow');
+        const restartPolicies = document.querySelectorAll('input[name="restartPolicy"]');
+        const proxyDetails    = document.getElementById('proxyDetails');
+        const splitCount      = document.getElementById('splitCount');
+        if (mode === 'Caster' || mode === 'Harvester') {
+          onlyVon.disabled      = false;
+          startNow.disabled     = false;
+          restartPolicies.forEach(r => r.disabled = false);
+          proxyDetails.disabled = false;
+          splitCount.disabled   = false;
+        }
+        else if (mode === 'Lists') {
+          onlyVon.disabled      = false;
+          startNow.disabled     = true;
+          restartPolicies.forEach(r => r.disabled = true);
+          proxyDetails.disabled = true;
+          splitCount.disabled   = false;
+        }
+        else if (mode === 'Stats') {
+          onlyVon.disabled      = true;
+          startNow.disabled     = true;
+          restartPolicies.forEach(r => r.disabled = true);
+          proxyDetails.disabled = true;
+          splitCount.disabled   = true;
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', loadInitialData);
+    </script>
+  </head>
+  <body>
+
+    <div class="row-group">
+      <div class="column">
+        <div class="label">Process only these selected accounts</div>
+        <div class="description">Empty: include all accounts</div>
+        <div class="inline-clear">
+          <textarea id="processAccounts" rows="10" style="width: 100%;"></textarea>
+          <button onclick="clearField('processAccounts')">Clear</button>
+        </div>
+      </div>
+      <div class="column">
+        <div class="label">Ignore these accounts</div>
+        <div class="description">Empty: don't ignore anything</div>
+        <div class="inline-clear">
+          <textarea id="ignoreAccounts" rows="10" style="width: 100%;"></textarea>
+          <button onclick="clearField('ignoreAccounts')">Clear</button>
+        </div>
+      </div>
+      <div class="column">
+        <div class="label">Ignore accounts with these chatters</div>
+        <div class="description">⚠️ Matches names containing:</div>
+        <div class="inline-clear">
+          <textarea id="ignoreChatters" rows="10" style="width: 100%;"></textarea>
+          <button onclick="clearField('ignoreChatters')">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-group">
+      <div class="column">
+        <label>
+          <input type="checkbox" id="ignoreColored"> Ignore the highlighted account names
+          <div class="description">Skips the accounts names with a background color</div>
+        </label>
+      </div>
+      <div class="column">
+        <div class="label">Account names leading text</div>
+        <div class="description">Remove from input account names / Include in output account names</div>
+        <input type="text" id="leadingText">
+      </div>
+      <div class="column">
+        <div class="label">Only accounts from</div>
+        <div class="description">Filter by account manager</div>
+        <select id="onlyVon" style="width: 100%;"></select>
+      </div>
+    </div>
+
+    <div class="row-group">
+      <div class="column">
+        <label>
+          <input type="checkbox" id="startNow"> Start now
+          <div class="description">Instructs the run to start immediately after creation</div>
+          <div class="description">⚠️ Simultaneous starts (10+) can overload the server</div>
+        </label>
+      </div>
+      <div class="column">
+        <div class="label">Restart policy</div>
+        <div class="description">When should the run start again (after finishing or crashing)</div>
+        <label><input type="radio" name="restartPolicy" value="Never" checked> Never</label><br>
+        <label><input type="radio" name="restartPolicy" value="On failure"> On failure</label><br>
+        <label><input type="radio" name="restartPolicy" value="Always"> Always</label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="label">Proxy details</div>
+      <div class="description">Format: proxy in one line, followed by comma-separated account names in next</div>
+      <div class="description">⚠️ Proxies without a list of account names will be assigned to every account</div>
+      <textarea id="proxyDetails" rows="20" placeholder="http://user:password@123.123.123.123:8888&#10;account1, account2, account3, ...&#10;http://user:password@123.123.123.123:8888&#10;account4, account5, account6, ...&#10;http://user:password@123.123.123.123:8888&#10;account7, account8, account9, ...&#10..." ></textarea>
+      <button onclick="clearField('proxyDetails')">Clear</button>
+    </div>
+
+    <div class="row-group">
+      <div class="column">
+        <div class="label">Split the array in groups of
+          <input type="number" id="splitCount" min="0" max="60" value="50" style="width: 60px;"> accounts
+        </div>
+        <div class="description">Set it to zero to get everything in a single array</div>
+        <div class="description">⚠️ Large groups (50+) can impact performance</div>
+      </div>
+      <div class="column">
+        <div class="label">Creation mode</div>
+        <div class="description">Which type of actor will be the results used for</div>
+        <label><input type="radio" name="creationMode" value="Caster" checked onchange="updateControlStates()"> Caster (multi-run single account)</label><br>
+        <label><input type="radio" name="creationMode" value="Harvester" onchange="updateControlStates()"> Harvester (multi-run single account)</label><br>
+        <label><input type="radio" name="creationMode" value="Lists" onchange="updateControlStates()"> Lists (multi-run multi-account)</label><br>
+        <label><input type="radio" name="creationMode" value="Stats" onchange="updateControlStates()"> Stats (single-run multi-account)</label>
+      </div>
+      <div>
+        <button id="generateBtn" onclick="validateAndGenerate()">Generate JSON</button>
+        <button id="cancelBtn" onclick="cancelDialog()">Cancel</button>
+        <br>
+        <div class="description" id="waitMessage">Please wait, generating JSON...</div>
+      </div>
+    </div>
+
+  </body>
+</html>

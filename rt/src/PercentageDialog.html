@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      .container {
+        display: flex;
+        align-items: center;
+      }
+      #percentageSelect {
+        width: 70%;
+        height: 40px;
+        margin-right: 5%;
+      }
+      #submitButton {
+        width: 25%;
+        height: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <select id="percentageSelect">
+        <option value="20">20%</option>
+        <option value="25">25%</option>
+        <option value="30">30%</option>
+        <option value="35">35%</option>
+        <option value="40">40%</option>
+      </select>
+      <button id="submitButton" onclick="setPercentage()">OK</button>
+    </div>
+    <script>
+      function setPercentage() {
+        var percentage = document.getElementById('percentageSelect').value;
+        google.script.run.setPercentage(parseInt(percentage));
+        google.script.host.close();
+      }
+    </script>
+  </body>
+</html>

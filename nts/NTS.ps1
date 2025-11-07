@@ -24,7 +24,7 @@ $ActorNamePrefix   = "adimeiss/actor/"
 $TaskNamePrefix    = "NopifyTask_"
 $BootTaskName      = "${TaskNamePrefix}Boot"
 $MaxNameLength     = 25
-$DockerErrorCode   = 2
+$DockerErrorCode   = 0x777
 $DockerTimeout     = 30
 $TaskRandomDelay   = 60
 $ScriptCheckDocker = @"
@@ -780,7 +780,8 @@ function Get-Friendly-Task-Result {
     switch ($hexResult) {
         '0x0'     { return 'Completed' }
         '0x1'     { return 'Script problem' }
-        '0x2'     { return 'Docker problem' } # Custom error: must match $DockerErrorCode
+        '0x103'   { return 'Running over' }   # Special case: the still-running task was stopped and started again
+        '0x777'   { return 'Docker problem' } # Custom error: must match $DockerErrorCode
         '0x41300' { return 'Ready' }
         '0x41301' { return 'Running' }
         '0x41302' { return 'Disabled' }

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      .container {
+        display: flex;
+        align-items: center;
+      }
+      #paymentPeriod {
+        width: 150px;
+        height: 30px;
+        padding: 5px;
+        font-size: 16px;
+      }
+      #submitButton {
+        width: 25%;
+        height: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <input type="month" id="paymentPeriod" min="2023-11" required>
+      <button id="submitButton" onclick="setPeriod()">OK</button>
+    </div>
+    <script>
+      const currentDate   = new Date();
+      const currentYear   = currentDate.getFullYear();
+      const currentMonth  = currentDate.getMonth() + 1;
+      const maxDate       = currentYear + "-" + (currentMonth < 10 ? '0' : '') + currentMonth;
+      const elementPeriod = document.getElementById('paymentPeriod');
+      elementPeriod.value = maxDate;
+      elementPeriod.setAttribute('max', maxDate);
+
+      function setPeriod() {
+        const period = elementPeriod.value;
+        if (period) {
+          google.script.run.generatePayments(period);
+        }
+        google.script.host.close();
+      }
+    </script>
+  </body>
+</html>

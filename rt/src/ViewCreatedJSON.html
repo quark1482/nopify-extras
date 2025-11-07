@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 10px;
+      }
+      textarea {
+        width: 100%;
+        height: 300px;
+        font-family: monospace;
+        white-space: pre;
+        overflow: auto;
+        margin-bottom: 20px;
+      }
+      .chunk-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .copy-btn {
+        margin-left: 10px;
+        font-size: 0.9em;
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+    </style>
+    <script>
+      function closeDialog() {
+        google.script.host.close();
+      }
+
+      function renderChunks(summary, chunks) {
+        document.getElementById('summary').innerText = summary;
+        const container = document.getElementById('jsonContainer');
+        chunks.forEach((chunk, index) => {
+          const labelWrapper = document.createElement('div');
+          const label        = document.createElement('span');
+          const copyButton   = document.createElement('button');
+          const textarea     = document.createElement('textarea');
+          labelWrapper.className = 'chunk-label';
+          label.textContent      = `Group ${index + 1}`;
+          copyButton.textContent = 'Copy';
+          copyButton.className   = 'copy-btn';
+          copyButton.onclick     = () => copyChunk(index);
+          textarea.readOnly      = true;
+          textarea.id            = `chunk-${index}`;
+          textarea.textContent   = chunk;
+          labelWrapper.appendChild(label);
+          labelWrapper.appendChild(copyButton);
+          container.appendChild(labelWrapper);
+          container.appendChild(textarea);
+        });
+      }
+
+      function copyChunk(index) {
+        const textarea = document.getElementById(`chunk-${index}`);
+        textarea.select();
+        document.execCommand('copy');
+        google.script.run.alertCreateJSONCopy(index + 1);
+      }
+    </script>
+  </head>
+  <body>
+    <div id="summary" style="margin-bottom: 15px; font-weight: bold;"></div>
+    <div id="jsonContainer"></div>
+    <button onclick="closeDialog()">Close</button>
+  </body>
+</html>
