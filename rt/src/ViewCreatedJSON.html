@@ -49,7 +49,7 @@
           copyButton.onclick     = () => copyChunk(index);
           textarea.readOnly      = true;
           textarea.id            = `chunk-${index}`;
-          textarea.textContent   = chunk;
+          textarea.textContent   = JSON.stringify(chunk, null, 4);
           labelWrapper.appendChild(label);
           labelWrapper.appendChild(copyButton);
           container.appendChild(labelWrapper);

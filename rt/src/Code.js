@@ -669,19 +669,18 @@ function createJSONAccountsSetup(params) {
   const output = [];
   if (splitCount > 0) {
     for (let i = 0; i < results.length; i += splitCount) {
-      output.push(JSON.stringify(results.slice(i, i + splitCount), null, 4));
+      output.push(results.slice(i, i + splitCount));
     }
   }
   else {
-    output.push(JSON.stringify(results, null, 4));
+    output.push(results);
   }
   const html    = HtmlService.createHtmlOutputFromFile('ViewCreatedJSON').setWidth(800).setHeight(600);
   const summary = `Processed: ${data.length - 1}, Included: ${results.length}`;
-  const chunks  = output.map(chunk => chunk.replace(/\\/g, '\\\\').replace(/`/g, '\\`'));
   html.append(
     `<script>` +
     `window.onload = function() {` +
-    `  renderChunks(\`${summary}\`, ${JSON.stringify(chunks)});` +
+    `  renderChunks(\`${summary}\`, ${JSON.stringify(output)});` +
     `};` +
     `</script>`
   );
