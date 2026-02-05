@@ -252,7 +252,7 @@ function generatePayments(p) {
           const valueDate         = dataSheetValues[indexRow][0];
           const valueChatterName  = normalizeName(dataSheetValues[indexRow][1]);
           const valueChatterTotal = parseFloat(dataSheetValues[indexRow][4]);
-          if (valueDate.endsWith(doirep) && valueChatterName && valueChatterTotal) {
+          if (isDate(valueDate) && valueDate.endsWith(doirep) && valueChatterName && valueChatterTotal) {
             if (!dataReport[valueChatterName]) {
               dataReport[valueChatterName] = { models: [], payment: 0 };
             }
@@ -573,6 +573,11 @@ function createJSONAccountsSetup(params) {
   const vonCol           = header.indexOf('von');
   const emailCol         = header.indexOf('email');
   const passCol          = header.indexOf('passwort');
+  const nachrichtCols    = header.map(
+    (col, index) => col.startsWith('nachricht') ? index : -1
+  ).filter(
+    index => index !== -1
+  );
   const results          = [];
   const modeCaster       = params.creationMode === 'Caster';
   const modeHarvester    = params.creationMode === 'Harvester';
@@ -631,6 +636,14 @@ function createJSONAccountsSetup(params) {
     if (!identifier || !password) {
       continue;
     }
+    const messages = [];
+    for (const c of nachrichtCols) {
+        const m = (row[c] || '').toString().trim();
+        if (m) {
+            messages.push(m);
+        }
+    }
+    const msg_messages = messages.length ? messages : undefined;
     const adv_proxy_usage = [];
     proxies.forEach(p => {
       if (!p.accounts.length) {
@@ -660,8 +673,10 @@ function createJSONAccountsSetup(params) {
         run_name        : leadingText + account,
         start_now       : startNow,
         restart_policy  : restartPolicy,
+        auth_account    : account,
         auth_identifier : identifier,
         auth_password   : password,
+        msg_messages,
         adv_proxy_usage
       });
     }
