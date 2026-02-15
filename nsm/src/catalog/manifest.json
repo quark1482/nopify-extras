@@ -1,0 +1,32 @@
+{
+    "actions": [
+        {
+            "id": "test-server",
+            "title": "Test Server",
+            "description": "Verifies server connectivity and Windows activation status",
+            "file": "Test-Server.ps1",
+            "extraParams": []
+        },
+        {
+            "id": "show-actors",
+            "title": "Show Actors",
+            "description": "Lists available actors along with their active and total run counts",
+            "file": "Show-Actors.ps1",
+            "extraParams": []
+        },
+        {
+            "id": "search-runs",
+            "title": "Search Runs",
+            "description": "Finds runs by name (or partial name)",
+            "file": "Search-Runs.ps1",
+            "extraParams": [
+                {
+                    "name": "RunName",
+                    "type": "string",
+                    "label": "Run name or partial name",
+                    "required": true
+                }
+            ]
+        }
+    ]
+}

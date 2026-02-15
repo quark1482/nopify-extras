@@ -1,0 +1,21 @@
+{
+  "name": "nopify-server-manager",
+  "version": "0.0.1",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:dev": "electron . --dev",
+    "rebuild": "electron-rebuild"
+  },
+  "keywords": [],
+  "author": "DEN!",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "electron": "^40.1.0",
+    "electron-rebuild": "^3.2.9"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.6.2"
+  }
+}

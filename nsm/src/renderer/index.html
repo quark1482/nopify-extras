@@ -1,0 +1,40 @@
+<!-- src/renderer/index.html -->
+<!DOCTYPE html>
+<html class="light">
+    <head>
+        <meta charset="UTF-8">
+        <title>Nopify Server Manager</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div class="toolbar">
+            <div class="toolbar-buttons">
+                <button id="newBtn">New</button>
+                <button id="saveBtn" disabled>Save</button>
+                <button id="cancelBtn" disabled>Cancel</button>
+                <button id="deleteBtn" disabled>Delete</button>
+                <button id="executeBtn" disabled>Execute</button>
+            </div>
+            <button id="themeToggle" class="theme-toggle" title="Toggle dark/light mode">
+                <img id="themeIcon" src="../assets/moon.svg" alt="Theme toggle">
+            </button>
+        </div>
+        <table id="grid">
+            <thead>
+                <tr>
+                    <th class="checkbox-cell">
+                        <input type="checkbox" id="selectAll">
+                    </th>
+                    <th data-col="nickname">Nickname <span class="sort-indicator"></span>
+                    </th>
+                    <th data-col="hostname">Hostname <span class="sort-indicator"></span>
+                    </th>
+                    <th>Username</th>
+                    <th>Password</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <script src="renderer.js"></script>
+    </body>
+</html>

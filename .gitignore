@@ -1,3 +1,4 @@
+node_modules
 rt/docs
 rt/.clasp.json
-*.ps1
+.env

@@ -1,0 +1,215 @@
+/* src/renderer/styles.css */
+
+:root {
+    --bg: #ffffff;
+    --text: #000000;
+    --toolbar-bg: #f8f8f8;
+    --table-header-bg: #f3f3f3;
+    --border: #ccc;
+    --disabled-bg: #eee;
+    --error-border: #ff0000;
+    --button-hover: #e0e0e0;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #1e1e1e;
+        --text: #e0e0e0;
+        --toolbar-bg: #2d2d2d;
+        --table-header-bg: #333333;
+        --border: #444;
+        --disabled-bg: #444;
+        --error-border: #ff4d4d;
+        --button-hover: #3a3a3a;
+    }
+}
+
+body.dark {
+    --bg: #1e1e1e;
+    --text: #e0e0e0;
+    --toolbar-bg: #2d2d2d;
+    --table-header-bg: #333333;
+    --border: #444;
+    --disabled-bg: #444;
+    --error-border: #ff4d4d;
+    --button-hover: #3a3a3a;
+}
+
+body {
+    font-family: system-ui, sans-serif;
+    margin: 12px;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.toolbar {
+    margin-bottom: 8px;
+    background: var(--toolbar-bg);
+    padding: 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+button {
+    padding: 6px 12px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+    background: var(--button-hover);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.theme-toggle {
+    margin-left: auto;
+    padding: 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle img {
+    width: 20px;
+    height: 20px;
+}
+
+.theme-toggle:hover {
+    opacity: 0.8;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background: var(--bg);
+}
+
+th,
+td {
+    border: 1px solid var(--border);
+    padding: 6px;
+}
+
+th {
+    background: var(--table-header-bg);
+    user-select: none;
+}
+
+th[data-col] {
+    cursor: pointer;
+}
+
+.checkbox-cell {
+    width: 36px;
+    text-align: center;
+}
+
+.checkbox-cell.disabled {
+    background: var(--disabled-bg);
+}
+
+td[contenteditable="true"] {
+    outline: none;
+}
+
+tr.error {
+    border: 2px solid var(--error-border);
+}
+
+.sort-indicator {
+    margin-left: 4px;
+    font-size: 0.8em;
+}
+
+.password-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.password-cell span {
+    flex: 1;
+    outline: none;
+}
+
+.eye {
+    cursor: pointer;
+    opacity: 0.6;
+    width: 16px;
+    height: 16px;
+}
+
+.eye:hover {
+    opacity: 1;
+}
+
+.eye:active,
+.eye.holding {
+    opacity: 1;
+    transform: scale(1.1); /* tiny feedback */
+}
+
+.password-cell input {
+    padding: 0;
+}
+
+.password-cell input::-ms-reveal,
+.password-cell input::-ms-clear {
+    display: none; /* hide browser's own reveal button if any */
+}
+
+.password-cell input::placeholder {
+    color: #aaa;
+    opacity: 1;
+}
+
+td.error-cell,
+input.error-cell {
+    border: 2px solid var(--error-border) !important;
+    background-color: rgba(255, 0, 0, 0.1);
+}
+
+td.error-cell:focus,
+input.error-cell:focus {
+    outline: 2px solid var(--error-border);
+}
+
+body.dark .eye,
+body.dark .theme-toggle img {
+    filter: invert(1);
+}
+
+.toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.toolbar button:not(.theme-toggle) {
+    flex: 0 0 auto;
+    min-width: fit-content;
+    padding: 6px 16px;
+}
+
+.toolbar-buttons {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(
+        max-content,
+        1fr
+    );
+    gap: 8px;
+}
