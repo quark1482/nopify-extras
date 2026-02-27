@@ -1,32 +1,369 @@
 {
     "actions": [
         {
-            "id": "test-server",
-            "title": "Test Server",
-            "description": "Verifies server connectivity and Windows activation status",
-            "file": "Test-Server.ps1",
-            "extraParams": []
-        },
-        {
-            "id": "show-actors",
-            "title": "Show Actors",
-            "description": "Lists available actors along with their active and total run counts",
-            "file": "Show-Actors.ps1",
-            "extraParams": []
-        },
-        {
-            "id": "search-runs",
-            "title": "Search Runs",
-            "description": "Finds runs by name (or partial name)",
-            "file": "Search-Runs.ps1",
-            "extraParams": [
+            "id"           : "test-server",
+            "title"        : "Test Server",
+            "description"  : "Verifies server connectivity and Windows activation status",
+            "file"         : "Test-Server.ps1",
+            "extraParams"  : [],
+            "outputSchema" : [
                 {
-                    "name": "RunName",
-                    "type": "string",
-                    "label": "Run name or partial name",
-                    "required": true
+                    "id"      : "server",
+                    "title"   : "Server",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "ip",
+                    "title"   : "IP",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "os",
+                    "title"   : "Windows caption",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "status",
+                    "title"   : "Activation status",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "daysLeft",
+                    "title"   : "Days left",
+                    "type"    : "integer",
+                    "visible" : true,
+                    "key"     : false
                 }
-            ]
+            ],
+            "appliesTo"    : "servers",
+            "produces"     : "servers",
+            "warning"      : false
+        },
+        {
+            "id"           : "reboot-server",
+            "title"        : "Reboot Server",
+            "description"  : "Unconditionally soft-reboots a server",
+            "file"         : "Reboot-Server.ps1",
+            "extraParams"  : [],
+            "outputSchema" : [
+                {
+                    "id"      : "server",
+                    "title"   : "Server",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "ip",
+                    "title"   : "IP",
+                    "type"    : "string",
+                    "visible" : false,
+                    "key"     : false
+                },
+                {
+                    "id"      : "exitCode",
+                    "title"   : "Shutdown exit code (0 = success)",
+                    "type"    : "integer",
+                    "visible" : true,
+                    "key"     : false
+                }
+            ],
+            "appliesTo"    : "servers",
+            "produces"     : "servers",
+            "warning"      : true
+        },
+        {
+            "id"           : "show-actors",
+            "title"        : "Show Actors",
+            "description"  : "Lists available actors along with their active and total run counts",
+            "file"         : "Show-Actors.ps1",
+            "extraParams"  : [],
+            "outputSchema" : [
+                {
+                    "id"      : "server",
+                    "title"   : "Server",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "ip",
+                    "title"   : "IP",
+                    "type"    : "string",
+                    "visible" : false,
+                    "key"     : false
+                },
+                {
+                    "id"      : "actorId",
+                    "title"   : "Actor id",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : true
+                },
+                {
+                    "id"      : "actorName",
+                    "title"   : "Actor name",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "activeRuns",
+                    "title"   : "Active runs",
+                    "type"    : "integer",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "totalRuns",
+                    "title"   : "Total runs",
+                    "type"    : "integer",
+                    "visible" : true,
+                    "key"     : false
+                }
+            ],
+            "appliesTo"    : "servers",
+            "produces"     : "actors",
+            "warning"      : false
+        },
+        {
+            "id"           : "search-runs",
+            "title"        : "Search Runs",
+            "description"  : "Finds runs by name (or partial name)",
+            "file"         : "Search-Runs.ps1",
+            "extraParams"  : [
+                {
+                    "id"       : "runName",
+                    "variable" : "RunName",
+                    "type"     : "string",
+                    "label"    : "Run name or partial name",
+                    "required" : true,
+                    "internal" : false
+                }
+            ],
+            "outputSchema" : [
+                {
+                    "id"      : "server",
+                    "title"   : "Server",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "ip",
+                    "title"   : "IP",
+                    "type"    : "string",
+                    "visible" : false,
+                    "key"     : false
+                },
+                {
+                    "id"      : "actorId",
+                    "title"   : "Actor id",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "actorName",
+                    "title"   : "Actor name",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "runID",
+                    "title"   : "Run id",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : true
+                },
+                {
+                    "id"      : "runName",
+                    "title"   : "Run Name",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "status",
+                    "title"   : "Status",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "startedAt",
+                    "title"   : "Start time",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "finishedAt",
+                    "title"   : "Finish time",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "duration",
+                    "title"   : "Duration",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "restartCount",
+                    "title"   : "Restart count",
+                    "type"    : "integer",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "restartPolicy",
+                    "title"   : "Restart Policy",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                }
+            ],
+            "appliesTo"    : "servers",
+            "produces"     : "runs",
+            "warning"      : false
+        },
+        {
+            "id"           : "show-actor-runs",
+            "title"        : "Show actor runs",
+            "description"  : "Lists runs by actor",
+            "file"         : "Show-Actor-Runs.ps1",
+            "extraParams"  : [
+                {
+                    "id"       : "actorId",
+                    "variable" : "ActorId",
+                    "type"     : "string",
+                    "label"    : "Run name or partial name",
+                    "required" : true,
+                    "internal" : true
+                }
+            ],
+            "outputSchema" : [
+                {
+                    "id"      : "server",
+                    "title"   : "Server",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "ip",
+                    "title"   : "IP",
+                    "type"    : "string",
+                    "visible" : false,
+                    "key"     : false
+                },
+                {
+                    "id"      : "actorId",
+                    "title"   : "Actor id",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "actorName",
+                    "title"   : "Actor name",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "runID",
+                    "title"   : "Run id",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : true
+                },
+                {
+                    "id"      : "runName",
+                    "title"   : "Run Name",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "status",
+                    "title"   : "Status",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "logMessage",
+                    "title"   : "Log message",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "logLevel",
+                    "title"   : "Log level",
+                    "type"    : "string",
+                    "visible" : false,
+                    "key"     : false
+                },
+                {
+                    "id"      : "logTimestamp",
+                    "title"   : "Log timestamp",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "startedAt",
+                    "title"   : "Start time",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "finishedAt",
+                    "title"   : "Finish time",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "duration",
+                    "title"   : "Duration",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "restartCount",
+                    "title"   : "Restart count",
+                    "type"    : "integer",
+                    "visible" : true,
+                    "key"     : false
+                },
+                {
+                    "id"      : "restartPolicy",
+                    "title"   : "Restart Policy",
+                    "type"    : "string",
+                    "visible" : true,
+                    "key"     : false
+                }
+            ],
+            "appliesTo"    : "actors",
+            "produces"     : "runs",
+            "warning"      : false
         }
     ]
 }
