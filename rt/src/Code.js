@@ -239,33 +239,46 @@ function generatePayments(p) {
     const doirep        = `.${String(month).padStart(2,'0')}.${year}`;
     const sheetPayments = preparePayments(ss);
     const sheets        = ss.getSheets();
+    const modelSheets   = sheets.filter(s => isModelSheet(s));
     const dataReport    = {};
     ss.setActiveSheet(sheetPayments);
     rangeStatus = sheetPayments.getRange('A1:E1');
     rangeStatus.setBackground(colorBlue);
-    for (let indexSheet = 0; indexSheet < sheets.length; indexSheet++) {
-      rangeStatus.setValue(`Creating report... ${Math.round((indexSheet + 1) / sheets.length * 100)} %`);
-      if (isModelSheet(sheets[indexSheet])) {
-        const valueModelName  = sheets[indexSheet].getRange('B1').getValue();
-        const dataSheetValues = sheets[indexSheet].getDataRange().getValues();
-        for (let indexRow = rowModelStart - 1; indexRow < dataSheetValues.length; indexRow++) {
-          const valueDate         = dataSheetValues[indexRow][0];
-          const valueChatterName  = normalizeName(dataSheetValues[indexRow][1]);
-          const valueChatterTotal = parseFloat(dataSheetValues[indexRow][4]);
-          if (isDate(valueDate) && valueDate.endsWith(doirep) && valueChatterName && valueChatterTotal) {
-            if (!dataReport[valueChatterName]) {
-              dataReport[valueChatterName] = { models: [], payment: 0 };
-            }
-            if (!dataReport[valueChatterName].models.find(
-              function (m) {
-                return m == valueModelName;
-              }
-            )) {
-              dataReport[valueChatterName].models.push(valueModelName);
-            }
-            dataReport[valueChatterName].payment += valueChatterTotal;
-          }
+    rangeStatus.setValue('Creating report... 0 %');
+    for (let indexSheet = 0; indexSheet < modelSheets.length; indexSheet++) {
+      const sheet          = modelSheets[indexSheet];
+      const valueModelName = sheet.getRange('B1').getValue();
+      const lastRow        = sheet.getLastRow();
+      const lastCol        = sheet.getLastColumn();
+      if (lastRow < rowModelStart) {
+          continue;
+      }
+      const allSheetData   = sheet.getRange(rowModelStart, 1, lastRow - rowModelStart + 1, lastCol).getValues();
+      let startIndex = allSheetData.length;
+      for (let i = 0; i < allSheetData.length; i++) {
+        if (String(allSheetData[i][0]).endsWith(doirep)) {
+          startIndex = i;
+          break;
         }
+      }
+      for (let i = startIndex; i < allSheetData.length; i++) {
+        const valueDate         = allSheetData[i][0];
+        const valueChatterName  = normalizeName(allSheetData[i][1]);
+        const valueChatterTotal = parseFloat(allSheetData[i][4]);
+        if (isDate(valueDate) && valueDate.endsWith(doirep) && valueChatterName && valueChatterTotal) {
+          if (!dataReport[valueChatterName]) {
+            dataReport[valueChatterName] = { models: [], payment: 0, modelsMap: {} };
+          }
+          if (!dataReport[valueChatterName].modelsMap[valueModelName]) {
+            dataReport[valueChatterName].models.push(valueModelName);
+            dataReport[valueChatterName].modelsMap[valueModelName] = true;
+          }
+          dataReport[valueChatterName].payment += valueChatterTotal;
+        }
+      }
+      if (indexSheet % 5 === 0 || indexSheet === modelSheets.length - 1) {
+        rangeStatus.setValue(`Creating report... ${Math.round((indexSheet + 1) / modelSheets.length * 100)} %`);
+        SpreadsheetApp.flush();
       }
     }
     finishPayments(sheetPayments, year, month, dataReport, rowDataStart);
@@ -561,7 +574,6 @@ function removeLeadingText(list, text) {
     return list;
   }
 }
-
 
 function createJSONAccountsSetup(params) {
   const ss               = SpreadsheetApp.getActiveSpreadsheet();

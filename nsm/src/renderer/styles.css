@@ -35,31 +35,99 @@ body.dark {
     --button-hover: #3a3a3a;
 }
 
+/* Layout*/
+
 body {
     font-family: system-ui, sans-serif;
-    margin: 12px;
+    margin: 0;
+    padding: 0;
     background: var(--bg);
     color: var(--text);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
 }
 
-.toolbar {
-    margin-bottom: 8px;
+/* Tab bar*/
+
+#tab-bar {
+    display: flex;
+    gap: 2px;
     background: var(--toolbar-bg);
-    padding: 8px;
-    border-radius: 4px;
+    border-bottom: 1px solid var(--border);
+    padding: 4px 8px 0;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.tab {
+    padding: 5px 14px;
+    cursor: default;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    background: var(--disabled-bg);
+    color: var(--text);
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.tab:hover {
+    background: var(--button-hover);
+}
+
+.tab.active {
+    background: var(--bg);
+    border-color: var(--border);
+    font-weight: 600;
+}
+
+.tab-close {
+    font-size: 1.1em;
+    line-height: 1;
+    opacity: 0.5;
+    padding: 0 2px;
+    border-radius: 3px;
+    cursor: default;
+}
+
+.tab-close:hover {
+    opacity: 1;
+    background: var(--button-hover);
+}
+
+/* Toolbar*/
+
+.toolbar {
+    flex-shrink: 0;
+    background: var(--toolbar-bg);
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     gap: 8px;
-    justify-content: flex-start;
+}
+
+.toolbar-buttons {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(max-content, 1fr);
+    gap: 8px;
 }
 
 button {
-    padding: 6px 12px;
+    padding: 6px 16px;
     background: var(--bg);
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 4px;
     cursor: pointer;
+    min-width: fit-content;
 }
 
 button:hover:not(:disabled) {
@@ -91,14 +159,37 @@ button:disabled {
     opacity: 0.8;
 }
 
+/* Tab panels*/
+
+#tab-panels {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.tab-panel {
+    display: none;
+    flex: 1;
+    overflow: auto;
+    padding: 8px;
+}
+
+.tab-panel.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Servers grid*/
+
 table {
     border-collapse: collapse;
     width: 100%;
     background: var(--bg);
 }
 
-th,
-td {
+th, td {
     border: 1px solid var(--border);
     padding: 6px;
 }
@@ -152,64 +243,149 @@ tr.error {
     height: 16px;
 }
 
-.eye:hover {
-    opacity: 1;
-}
+.eye:hover { opacity: 1; }
+.eye:active, .eye.holding { opacity: 1; transform: scale(1.1); }
 
-.eye:active,
-.eye.holding {
-    opacity: 1;
-    transform: scale(1.1); /* tiny feedback */
-}
-
-.password-cell input {
-    padding: 0;
-}
-
+.password-cell input { padding: 0; }
 .password-cell input::-ms-reveal,
-.password-cell input::-ms-clear {
-    display: none; /* hide browser's own reveal button if any */
-}
+.password-cell input::-ms-clear { display: none; }
+.password-cell input::placeholder { color: #aaa; opacity: 1; }
 
-.password-cell input::placeholder {
-    color: #aaa;
-    opacity: 1;
-}
-
-td.error-cell,
-input.error-cell {
+td.error-cell, input.error-cell {
     border: 2px solid var(--error-border) !important;
     background-color: rgba(255, 0, 0, 0.1);
 }
 
-td.error-cell:focus,
-input.error-cell:focus {
+td.error-cell:focus, input.error-cell:focus {
     outline: 2px solid var(--error-border);
 }
 
 body.dark .eye,
+body.dark .wait,
 body.dark .theme-toggle img {
     filter: invert(1);
 }
 
-.toolbar {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+/* Execute menu*/
+
+.execute-menu {
+    min-width: 180px;
+    max-height: 300px;
+    overflow-y: auto;
 }
 
-.toolbar button:not(.theme-toggle) {
-    flex: 0 0 auto;
-    min-width: fit-content;
-    padding: 6px 16px;
+.execute-menu div {
+    padding: 8px 16px;
+    cursor: default;
+    user-select: none;
 }
 
-.toolbar-buttons {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(
-        max-content,
-        1fr
-    );
-    gap: 8px;
+.execute-menu div:hover {
+    background: var(--button-hover);
+}
+
+/* Status bar*/
+
+#status-bar {
+    flex-shrink: 0;
+    height: 24px;
+    line-height: 24px;
+    padding: 0 8px;
+    background: var(--toolbar-bg);
+    border-top: 1px solid var(--border);
+    font-size: 0.9em;
+    color: #666;
+}
+
+/* Nickname icons (servers grid)*/
+
+.nickname-cell {
+    position: relative;
+}
+
+.nickname-icon {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 19px;
+    height: 19px;
+    pointer-events: none;
+}
+
+/* clickable failure icons */
+.nickname-icon[style*="pointer"] {
+    pointer-events: auto;
+}
+
+/* Result grid*/
+
+.result-grid-wrap {
+    flex: 1;
+    overflow: auto;
+}
+
+.result-table {
+    border-collapse: collapse;
+    width: 100%;
+    background: var(--bg);
+    font-size: 0.9em;
+}
+
+.result-table th,
+.result-table td {
+    border: 1px solid var(--border);
+    padding: 5px 8px;
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.result-table th {
+    background: var(--table-header-bg);
+    user-select: none;
+    position: sticky;
+    top: 0;
+}
+
+.result-table .checkbox-cell {
+    width: 32px;
+    text-align: center;
+}
+
+/* Status icon in first data column of result grids */
+
+.result-first-col {
+    position: relative;
+}
+
+.row-status-icon {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
+
+.row-status-icon[style*="pointer"] {
+    pointer-events: auto;
+}
+
+/* Overlay*/
+
+#grid-overlay {
+    cursor: wait;
+}
+
+/* Dark mode icon filters*/
+
+body.dark .row-status-icon.wait {
+    filter: invert(1);
+}
+
+.result-table th[data-col] {
+    cursor: pointer;
 }

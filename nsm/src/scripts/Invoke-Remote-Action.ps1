@@ -22,7 +22,7 @@ function Invoke-Remote-Action {
             } @args;
         } -ErrorAction Stop <#EXTRA_ARGUMENT_LIST#>;
         $ret | Add-Member -NotePropertyName server -NotePropertyValue $svr -Force;
-        $ret | Add-Member -NotePropertyName ip -NotePropertyValue $ip  -Force;
+        $ret | Add-Member -NotePropertyName ip -NotePropertyValue $ip -Force;
         if ($ret.results) {
             $ret.results = $ret.results |
                 Select-Object @{Name="server";Expression={$svr}}, @{Name="ip";Expression={$ip}},

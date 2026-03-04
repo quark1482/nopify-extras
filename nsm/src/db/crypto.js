@@ -1,6 +1,6 @@
 // src/db/crypto.js
-const crypto = require('crypto');
-const os = require('os');
+const crypto       = require('crypto');
+const os           = require('os');
 const { execSync } = require('child_process');
 
 const ALGO = 'aes-256-gcm';
@@ -18,9 +18,9 @@ function getHardwareId() {
     }
     try {
         const output = execSync('wmic diskdrive get serialnumber', {
-            encoding: 'utf8'
+            encoding : 'utf8'
         });
-        const lines = output.split('\n').map(l => l.trim()).filter(Boolean);
+        const lines  = output.split('\n').map(l => l.trim()).filter(Boolean);
         if (lines.length > 1) {
             parts.push(lines[1]);
         }
@@ -32,24 +32,28 @@ function getHardwareId() {
 }
 
 const HARDWARE_ID = getHardwareId();
-const KEY = crypto.createHash('sha256').update(HARDWARE_ID).digest();
+const KEY         = crypto.createHash('sha256').update(HARDWARE_ID).digest();
 
 function encrypt(text) {
-    if (!text) throw new Error('Cannot encrypt empty string');
-    const iv = crypto.randomBytes(12);
-    const cipher = crypto.createCipheriv(ALGO, KEY, iv);
+    if (!text) {
+        throw new Error('Cannot encrypt empty string');
+    }
+    const iv        = crypto.randomBytes(12);
+    const cipher    = crypto.createCipheriv(ALGO, KEY, iv);
     const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);
-    const tag = cipher.getAuthTag();
+    const tag       = cipher.getAuthTag();
     return Buffer.concat([iv, tag, encrypted]).toString('base64');
 }
 
 function decrypt(payload) {
-    if (!payload) throw new Error('Cannot decrypt empty payload');
+    if (!payload) {
+        throw new Error('Cannot decrypt empty payload');
+    }
     try {
-        const data = Buffer.from(payload, 'base64');
-        const iv = data.slice(0, 12);
-        const tag = data.slice(12, 28);
-        const text = data.slice(28);
+        const data     = Buffer.from(payload, 'base64');
+        const iv       = data.slice(0, 12);
+        const tag      = data.slice(12, 28);
+        const text     = data.slice(28);
         const decipher = crypto.createDecipheriv(ALGO, KEY, iv);
         decipher.setAuthTag(tag);
         return decipher.update(text, null, 'utf8') + decipher.final('utf8');
